@@ -1,10 +1,10 @@
-```html id="2m4p1r"
+```html id="x8m2ka"
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>哈夫曼树分步生成器（终极防重叠版）</title>
+<title>哈夫曼树分步生成器（自适应缩放版）</title>
 
 <style>
 
@@ -23,7 +23,7 @@
 
 body{
     margin:0;
-    padding:30px;
+    padding:24px;
     background:var(--bg);
     color:var(--text);
     font-family:Inter,Segoe UI,sans-serif;
@@ -31,8 +31,8 @@ body{
 
 h1{
     text-align:center;
-    margin-bottom:30px;
-    font-size:2.2rem;
+    margin-bottom:28px;
+    font-size:2.1rem;
 
     background:linear-gradient(
         135deg,
@@ -45,12 +45,14 @@ h1{
 }
 
 .panel{
+
     max-width:1400px;
+
     margin:auto;
 
     background:var(--panel);
 
-    padding:25px;
+    padding:24px;
 
     border-radius:18px;
 
@@ -62,11 +64,16 @@ h1{
 }
 
 .row{
+
     display:flex;
+
     flex-wrap:wrap;
+
     align-items:center;
+
     gap:12px;
-    margin-bottom:20px;
+
+    margin-bottom:18px;
 }
 
 input[type="number"]{
@@ -196,7 +203,7 @@ button:disabled{
 
 .canvas-wrap{
 
-    max-width:1400px;
+    max-width:100%;
 
     margin:25px auto 0;
 
@@ -207,10 +214,14 @@ button:disabled{
     border:1px solid rgba(255,255,255,0.08);
 
     background:#0f172a;
+
+    box-shadow:
+        inset 0 0 25px rgba(0,0,0,0.35);
 }
 
 canvas{
     display:block;
+    width:100%;
 }
 
 ::-webkit-scrollbar{
@@ -240,7 +251,7 @@ canvas{
             type="number"
             id="countInput"
             min="2"
-            max="30"
+            max="50"
         >
 
         <button
@@ -254,7 +265,7 @@ canvas{
 
     <div id="inputsGrid"></div>
 
-    <div class="row" style="margin-top:25px;">
+    <div class="row" style="margin-top:24px;">
 
         <button
             class="primary"
@@ -291,7 +302,6 @@ canvas{
     <canvas id="canvas"></canvas>
 </div>
 
-
 <script>
 
 /* =====================================
@@ -312,7 +322,6 @@ class Node{
 
         this.y=0;
 
-        /* 子树宽度 */
         this.width=0;
     }
 }
@@ -342,22 +351,22 @@ const infoBox=document.getElementById("infoBox");
 
 
 /* =====================================
-   参数
+   参数（更紧凑）
 ===================================== */
 
-const NODE_RADIUS=26;
+const NODE_RADIUS=18;
 
 /* 层高 */
-const LEVEL_HEIGHT=150;
+const LEVEL_HEIGHT=100;
 
 /* 节点安全间距 */
-const SAFE_GAP=90;
+const SAFE_GAP=35;
 
-/* 树之间距离 */
-const TREE_GAP=180;
+/* 树间距 */
+const TREE_GAP=80;
 
 /* 边距 */
-const PADDING=120;
+const PADDING=60;
 
 
 /* =====================================
@@ -384,9 +393,9 @@ btnGenerate.onclick=()=>{
         return;
     }
 
-    if(count>30){
+    if(count>50){
 
-        alert("建议不要超过30个节点");
+        alert("建议不要超过50个节点");
 
         return;
     }
@@ -446,7 +455,7 @@ function getDepth(node){
 
 
 /* =====================================
-   构建步骤
+   开始构建
 ===================================== */
 
 btnStart.onclick=()=>{
@@ -584,7 +593,6 @@ btnReset.onclick=()=>{
 
 
 /* =====================================
-   核心：
    计算子树宽度
 ===================================== */
 
@@ -592,7 +600,6 @@ function calculateWidth(node){
 
     if(!node) return 0;
 
-    /* 叶子节点 */
     if(!node.left&&!node.right){
 
         node.width=
@@ -619,7 +626,7 @@ function calculateWidth(node){
 
 
 /* =====================================
-   真正无重叠布局
+   设置位置（绝对防重叠）
 ===================================== */
 
 function setPosition(node,leftBound,depth){
@@ -630,12 +637,10 @@ function setPosition(node,leftBound,depth){
         PADDING+
         depth*LEVEL_HEIGHT;
 
-    /* 父节点放在子树中间 */
     node.x=
         leftBound+
         node.width/2;
 
-    /* 左子树 */
     if(node.left){
 
         setPosition(
@@ -645,7 +650,6 @@ function setPosition(node,leftBound,depth){
         );
     }
 
-    /* 右子树 */
     if(node.right){
 
         const rightStart=
@@ -671,13 +675,14 @@ function drawTree(node){
 
     if(!node) return;
 
-    /* ===== 连线 ===== */
-
     ctx.strokeStyle="#e2e8f0";
 
-    ctx.lineWidth=3;
+    ctx.lineWidth=2.2;
 
     ctx.lineCap="round";
+
+
+    /* 左边 */
 
     if(node.left){
 
@@ -697,6 +702,9 @@ function drawTree(node){
 
         drawTree(node.left);
     }
+
+
+    /* 右边 */
 
     if(node.right){
 
@@ -718,31 +726,31 @@ function drawTree(node){
     }
 
 
-    /* ===== 阴影 ===== */
+    /* 阴影 */
 
     ctx.beginPath();
 
     ctx.arc(
-        node.x+4,
-        node.y+4,
+        node.x+2,
+        node.y+2,
         NODE_RADIUS,
         0,
         Math.PI*2
     );
 
     ctx.fillStyle=
-        "rgba(0,0,0,0.35)";
+        "rgba(0,0,0,0.25)";
 
     ctx.fill();
 
 
-    /* ===== 渐变 ===== */
+    /* 渐变 */
 
     const gradient=
         ctx.createRadialGradient(
-            node.x-8,
-            node.y-8,
-            5,
+            node.x-5,
+            node.y-5,
+            2,
             node.x,
             node.y,
             NODE_RADIUS
@@ -767,20 +775,21 @@ function drawTree(node){
     ctx.fill();
 
 
-    /* ===== 边框 ===== */
+    /* 边框 */
 
     ctx.strokeStyle="#f8fafc";
 
-    ctx.lineWidth=3;
+    ctx.lineWidth=2.2;
 
     ctx.stroke();
 
 
-    /* ===== 文字 ===== */
+    /* 文字 */
 
     ctx.fillStyle="white";
 
-    ctx.font="bold 16px Inter";
+    ctx.font=
+        `bold ${Math.max(10,NODE_RADIUS*0.8)}px Inter`;
 
     ctx.textAlign="center";
 
@@ -796,7 +805,7 @@ function drawTree(node){
 
 
 /* =====================================
-   绘制森林
+   绘制森林（自动缩放）
 ===================================== */
 
 function drawForest(forest){
@@ -809,7 +818,7 @@ function drawForest(forest){
     let maxDepth=0;
 
 
-    /* 计算所有树宽度 */
+    /* 计算宽度 */
 
     forest.forEach(tree=>{
 
@@ -826,14 +835,17 @@ function drawForest(forest){
     });
 
 
-    canvas.width=Math.max(
-        totalWidth+PADDING*2,
-        1600
-    );
+    totalWidth+=PADDING*2;
 
-    canvas.height=
+
+    const totalHeight=
         maxDepth*LEVEL_HEIGHT+
         PADDING*2;
+
+
+    canvas.width=totalWidth;
+
+    canvas.height=totalHeight;
 
 
     /* 背景 */
@@ -860,7 +872,7 @@ function drawForest(forest){
     );
 
 
-    /* 绘制多棵树 */
+    /* 绘制 */
 
     let currentLeft=PADDING;
 
