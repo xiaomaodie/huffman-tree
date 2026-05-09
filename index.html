@@ -4,123 +4,290 @@
     <meta charset="UTF-8">
     <title>哈夫曼树分步生成器</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-            color: #333;
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.8);
+            --primary: #38bdf8;
+            --primary-dark: #0284c7;
+            --accent: #a855f7;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --node-grad-1: #38bdf8;
+            --node-grad-2: #8b5cf6;
         }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+
         .control-panel {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .step-section {
             margin-bottom: 20px;
         }
-        .input-group {
-            margin-bottom: 15px;
+
+        .step-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-label {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-row {
             display: flex;
             align-items: center;
+            gap: 12px;
             flex-wrap: wrap;
         }
-        .input-group label {
-            margin-right: 10px;
-            font-weight: 500;
-        }
+
         input[type="number"] {
-            padding: 10px;
-            width: 120px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            margin-right: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-main);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
         }
-        .num-inputs-container {
-            margin-top: 15px;
-            padding: 15px;
-            background: #fff;
-            border-radius: 4px;
-            border: 1px dashed #ccc;
-            display: none;
+
+        input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
         }
-        .num-input-row {
+
+        input[type="number"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            margin: 8px 15px 8px 0;
+            gap: 8px;
         }
-        .num-input-row label {
-            margin-right: 8px;
-            color: #666;
-            font-size: 14px;
-            min-width: 60px;
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
         }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-right: 10px;
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
         }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
-        .btn-success { background-color: #28a745; color: white; }
-        .btn-success:hover { background-color: #218838; }
-        .btn-success:disabled { background-color: #ccc; cursor: not-allowed; }
-        .btn-secondary { background-color: #6c757d; color: white; }
-        .btn-secondary:hover { background-color: #545b62; }
-        .btn-secondary:disabled { background-color: #ccc; cursor: not-allowed; }
-        
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* 折叠区域样式 */
+        .collapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-toggle {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-toggle:hover {
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .num-inputs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .num-inputs-grid.expanded {
+            max-height: 1000px; /* 足够大的值以容纳内容 */
+            opacity: 1;
+        }
+
+        .num-input-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .num-input-item label {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
+
+        .num-input-item input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         #info-box {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 600;
             margin: 20px 0;
+            padding: 15px 20px;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
             min-height: 24px;
         }
+
+        /* 画布滚动容器 */
+        .canvas-container {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: auto;
+            max-height: 70vh;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.4);
+        }
+
         canvas {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: block;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
 <body>
 
+    <h1>🌳 哈夫曼树分步生成器</h1>
+
     <div class="control-panel">
         <!-- 第一步：输入数量 -->
-        <div class="input-group" id="step1">
-            <label>请输入数字数量：</label>
-            <input type="number" id="countInput" min="2" max="20" placeholder="建议 2-20">
-            <button id="btnConfirmCount" class="btn-success">确认数量</button>
-        </div>
-
-        <!-- 第二步：输入具体数字 -->
-        <div class="num-inputs-container" id="step2">
-            <div style="margin-bottom: 10px; font-weight: 500;">请输入具体数字：</div>
-            <div id="numInputsWrapper"></div>
-            <div style="margin-top: 15px;">
-                <button id="btnStart" class="btn-primary" disabled>开始构建</button>
-                <button id="btnResetCount" class="btn-secondary">重新输入数量</button>
+        <div class="step-section" id="step1">
+            <div class="section-label">Step 1: 配置规模</div>
+            <div class="input-row">
+                <label style="color: var(--text-main);">节点数量：</label>
+                <input type="number" id="countInput" min="2" max="30" placeholder="建议 2-30" style="width: 150px;">
+                <button id="btnConfirmCount" class="btn-success">生成输入框</button>
             </div>
         </div>
 
-        <!-- 控制按钮 -->
-        <div style="margin-top: 15px; display: none;" id="step3">
-            <button id="btnNext" class="btn-primary" disabled>下一步</button>
-            <button id="btnReset" class="btn-secondary">完全重置</button>
+        <!-- 第二步：输入具体数字 (可折叠) -->
+        <div class="step-section" id="step2" style="display: none;">
+            <div class="collapse-header">
+                <div class="section-label" style="margin-bottom: 0;">Step 2: 输入权重</div>
+                <button id="btnToggle" class="btn-toggle">折叠 ▲</button>
+            </div>
+            
+            <div class="num-inputs-grid expanded" id="numInputsGrid">
+                <!-- 动态生成的输入框会放在这里 -->
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button id="btnStart" class="btn-primary" disabled>开始构建</button>
+                <button id="btnResetCount" class="btn-secondary">重新配置</button>
+            </div>
+        </div>
+
+        <!-- 第三步：控制按钮 -->
+        <div class="step-section" id="step3" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div class="input-row">
+                <button id="btnNext" class="btn-primary" disabled>执行下一步</button>
+                <button id="btnReset" class="btn-secondary">完全重置</button>
+            </div>
         </div>
     </div>
 
-    <div id="info-box">请先输入数字数量</div>
-    <canvas id="treeCanvas" width="1150" height="600"></canvas>
+    <div id="info-box">请输入节点数量开始...</div>
+
+    <div class="canvas-container">
+        <canvas id="treeCanvas"></canvas>
+    </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // 节点类定义
         class Node {
             constructor(value, left = null, right = null) {
                 this.value = value;
@@ -129,7 +296,6 @@
             }
         }
 
-        // 全局变量
         let steps = [];
         let currentStepIndex = 0;
         const canvas = document.getElementById('treeCanvas');
@@ -138,7 +304,8 @@
         // DOM 元素
         const countInput = document.getElementById('countInput');
         const btnConfirmCount = document.getElementById('btnConfirmCount');
-        const numInputsWrapper = document.getElementById('numInputsWrapper');
+        const numInputsGrid = document.getElementById('numInputsGrid');
+        const btnToggle = document.getElementById('btnToggle');
         const btnStart = document.getElementById('btnStart');
         const btnNext = document.getElementById('btnNext');
         const btnReset = document.getElementById('btnReset');
@@ -148,46 +315,49 @@
         const step2 = document.getElementById('step2');
         const step3 = document.getElementById('step3');
 
-        // 事件绑定
+        // 折叠功能
+        let isExpanded = true;
+        btnToggle.onclick = () => {
+            isExpanded = !isExpanded;
+            numInputsGrid.classList.toggle('expanded', isExpanded);
+            btnToggle.textContent = isExpanded ? '折叠 ▲' : '展开 ▼';
+        };
+
         btnConfirmCount.onclick = generateNumInputs;
         btnStart.onclick = init;
         btnNext.onclick = executeStep;
         btnReset.onclick = fullReset;
         btnResetCount.onclick = resetToStep1;
 
-        // 生成数字输入框
         function generateNumInputs() {
             const count = parseInt(countInput.value);
             
             if (isNaN(count) || count < 2) {
-                alert("请输入至少 2 个数字！");
+                alert("请输入至少 2 个节点！");
                 return;
             }
-            if (count > 20) {
-                alert("为了展示效果，建议不超过 20 个数字！");
+            if (count > 30) {
+                alert("为了展示效果，建议不超过 30 个节点！");
                 return;
             }
 
-            // 清空并生成输入框
-            numInputsWrapper.innerHTML = '';
+            numInputsGrid.innerHTML = '';
             for (let i = 0; i < count; i++) {
-                const row = document.createElement('div');
-                row.className = 'num-input-row';
-                row.innerHTML = `
-                    <label>数字 ${i + 1}：</label>
-                    <input type="number" class="num-input" placeholder="输入数字" style="width: 100px;">
+                const item = document.createElement('div');
+                item.className = 'num-input-item';
+                item.innerHTML = `
+                    <label>节点 ${i + 1}</label>
+                    <input type="number" class="num-input" placeholder="权重">
                 `;
-                numInputsWrapper.appendChild(row);
+                numInputsGrid.appendChild(item);
             }
 
-            // 显示第二步，隐藏第一步
             step2.style.display = 'block';
             btnConfirmCount.disabled = true;
             countInput.disabled = true;
             btnStart.disabled = false;
-            infoBox.textContent = "请输入具体数字，然后点击“开始构建”";
+            infoBox.textContent = "请输入各节点的权重值...";
 
-            // 监听输入框变化，自动聚焦下一个
             const numInputs = document.querySelectorAll('.num-input');
             numInputs.forEach((input, index) => {
                 input.addEventListener('keypress', function(e) {
@@ -198,16 +368,19 @@
             });
         }
 
-        // 深拷贝节点
         function deepCopy(node) {
             if (!node) return null;
             return new Node(node.value, deepCopy(node.left), deepCopy(node.right));
         }
 
-        // 初始化流程
+        // 计算树的高度
+        function getTreeHeight(node) {
+            if (!node) return 0;
+            return 1 + Math.max(getTreeHeight(node.left), getTreeHeight(node.right));
+        }
+
         function init() {
             try {
-                // 获取所有输入的数字
                 const numInputs = document.querySelectorAll('.num-input');
                 const nums = [];
                 
@@ -221,50 +394,38 @@
                     nums.push(val);
                 }
 
-                // 重置状态
                 steps = [];
                 currentStepIndex = 0;
                 
-                // 创建初始森林
                 let forest = nums.map(n => new Node(n));
                 
-                // 保存初始状态
                 steps.push({
                     forest: forest.map(n => deepCopy(n)),
                     msg: `初始节点列表: [${nums.join(', ')}]`
                 });
 
-                // 预生成所有步骤
                 while (forest.length > 1) {
-                    // 排序：从小到大
                     forest.sort((a, b) => a.value - b.value);
-
-                    // 取出最小的两个
                     const n1 = forest.shift();
                     const n2 = forest.shift();
-                    
-                    // 合并
                     const newNode = new Node(n1.value + n2.value, n1, n2);
                     forest.push(newNode);
 
-                    // 记录此步
                     steps.push({
                         forest: forest.map(n => deepCopy(n)),
-                        msg: `合并 ${n1.value} 和 ${n2.value} -> 生成 ${newNode.value}。剩余节点: [${forest.map(n => n.value).join(', ')}]`
+                        msg: `合并 ${n1.value} 和 ${n2.value} -> 生成 ${newNode.value}`
                     });
                 }
 
-                // UI 更新
                 document.querySelectorAll('.num-input').forEach(input => input.disabled = true);
                 btnStart.disabled = true;
                 btnResetCount.disabled = true;
+                btnToggle.disabled = true;
                 step3.style.display = 'block';
                 btnNext.disabled = false;
                 btnReset.disabled = false;
-                infoBox.textContent = "准备就绪，点击“下一步”开始";
-                clearCanvas();
+                infoBox.textContent = "准备就绪，点击“执行下一步”开始";
                 
-                // 立即绘制初始状态
                 drawForest(steps[0].forest);
             } catch (error) {
                 alert("发生错误: " + error.message);
@@ -272,7 +433,6 @@
             }
         }
 
-        // 执行单步
         function executeStep() {
             try {
                 currentStepIndex++;
@@ -285,8 +445,6 @@
 
                 const currentState = steps[currentStepIndex];
                 infoBox.textContent = `步骤 ${currentStepIndex + 1}: ${currentState.msg}`;
-                
-                // 绘制
                 drawForest(currentState.forest);
             } catch (error) {
                 alert("执行错误: " + error.message);
@@ -294,85 +452,115 @@
             }
         }
 
-        // 绘制森林
         function drawForest(forest) {
-            clearCanvas();
             if (!forest || forest.length === 0) return;
 
-            const sectionWidth = canvas.width / forest.length;
+            // 1. 计算所需画布总尺寸
+            let maxTreeHeight = 0;
+            forest.forEach(tree => {
+                maxTreeHeight = Math.max(maxTreeHeight, getTreeHeight(tree));
+            });
+
+            const nodeRadius = 25;
+            const levelHeight = 90; // 每层高度
+            const padding = 80;
+            
+            // 动态设置画布大小
+            const canvasWidth = Math.max(1200, forest.length * 300); // 宽度根据森林数量
+            const canvasHeight = maxTreeHeight * levelHeight + padding * 2;
+            
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. 绘制每棵树
+            const sectionWidth = canvasWidth / forest.length;
             
             forest.forEach((tree, index) => {
                 const rootX = index * sectionWidth + sectionWidth / 2;
-                const rootY = 60;
+                const rootY = padding;
                 const initialGap = sectionWidth / 4; 
                 
-                drawTree(tree, rootX, rootY, initialGap);
+                drawTree(tree, rootX, rootY, initialGap, levelHeight, nodeRadius);
             });
         }
 
-        // 递归绘制单棵树
-        function drawTree(node, x, y, gap) {
+        function drawTree(node, x, y, gap, levelHeight, radius) {
             if (!node) return;
 
             // 绘制连线
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#475569';
+            ctx.lineCap = 'round';
+
             if (node.left) {
                 const lx = x - gap;
-                const ly = y + 80;
+                const ly = y + levelHeight;
                 ctx.beginPath();
-                ctx.moveTo(x, y + 20);
-                ctx.lineTo(lx, ly - 20);
-                ctx.strokeStyle = '#555';
-                ctx.lineWidth = 2;
+                ctx.moveTo(x, y + radius);
+                ctx.lineTo(lx, ly - radius);
                 ctx.stroke();
-                drawTree(node.left, lx, ly, gap / 2);
+                drawTree(node.left, lx, ly, gap / 2, levelHeight, radius);
             }
 
             if (node.right) {
                 const rx = x + gap;
-                const ry = y + 80;
+                const ry = y + levelHeight;
                 ctx.beginPath();
-                ctx.moveTo(x, y + 20);
-                ctx.lineTo(rx, ry - 20);
-                ctx.strokeStyle = '#555';
-                ctx.lineWidth = 2;
+                ctx.moveTo(x, y + radius);
+                ctx.lineTo(rx, ry - radius);
                 ctx.stroke();
-                drawTree(node.right, rx, ry, gap / 2);
+                drawTree(node.right, rx, ry, gap / 2, levelHeight, radius);
             }
 
-            // 绘制节点
+            // 绘制节点阴影
             ctx.beginPath();
-            ctx.arc(x, y, 22, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff';
+            ctx.arc(x + 3, y + 3, radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.fill();
-            ctx.strokeStyle = '#007bff';
+
+            // 绘制节点主体 (渐变)
+            const gradient = ctx.createRadialGradient(x - 5, y - 5, 2, x, y, radius);
+            gradient.addColorStop(0, '#38bdf8');
+            gradient.addColorStop(1, '#6366f1');
+
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // 节点边框
+            ctx.strokeStyle = '#e2e8f0';
             ctx.lineWidth = 3;
             ctx.stroke();
 
             // 绘制文字
-            ctx.fillStyle = '#333';
-            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 16px Inter, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'transparent';
             ctx.fillText(node.value, x, y);
         }
 
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // 回到第一步（重新输入数量）
         function resetToStep1() {
             step2.style.display = 'none';
             step3.style.display = 'none';
             btnConfirmCount.disabled = false;
             countInput.disabled = false;
             countInput.value = '';
-            numInputsWrapper.innerHTML = '';
-            infoBox.textContent = "请先输入数字数量";
-            clearCanvas();
+            numInputsGrid.innerHTML = '';
+            btnToggle.disabled = false;
+            isExpanded = true;
+            numInputsGrid.classList.add('expanded');
+            btnToggle.textContent = '折叠 ▲';
+            infoBox.textContent = "请输入节点数量开始...";
+            canvas.width = 0; // 清空画布
+            canvas.height = 0;
         }
 
-        // 完全重置
         function fullReset() {
             resetToStep1();
             steps = [];
