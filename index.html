@@ -1,547 +1,698 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>哈夫曼树分步生成器 (无重叠版)</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --panel-bg: rgba(30, 41, 59, 0.8);
-            --primary: #38bdf8;
-            --primary-dark: #0284c7;
-            --accent: #a855f7;
-            --text-main: #f1f5f9;
-            --text-sub: #94a3b8;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>哈夫曼树分步生成器（无重叠终极版）</title>
 
-        body {
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 30px 20px;
-            min-height: 100vh;
-        }
+<style>
+    :root {
+        --bg-color: #0f172a;
+        --panel-bg: rgba(30, 41, 59, 0.85);
+        --primary: #38bdf8;
+        --primary-dark: #0284c7;
+        --accent: #a855f7;
+        --text-main: #f1f5f9;
+        --text-sub: #94a3b8;
+    }
 
-        h1 {
-            text-align: center;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 30px;
-            font-size: 2.2rem;
-        }
+    * {
+        box-sizing: border-box;
+    }
 
-        .control-panel {
-            background: var(--panel-bg);
-            backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 25px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
+    body {
+        margin: 0;
+        padding: 30px 20px;
+        background: var(--bg-color);
+        color: var(--text-main);
+        font-family: "Inter", "Segoe UI", sans-serif;
+        min-height: 100vh;
+    }
 
-        .step-section {
-            margin-bottom: 20px;
-        }
+    h1 {
+        text-align: center;
+        font-size: 2.3rem;
+        margin-bottom: 30px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-        .section-label {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+    .panel {
+        max-width: 1400px;
+        margin: auto;
+        background: var(--panel-bg);
+        border-radius: 18px;
+        padding: 24px;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+    }
 
-        .input-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
 
-        input[type="number"] {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: var(--text-main);
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
+    .label {
+        color: var(--text-sub);
+        font-size: 0.95rem;
+    }
 
-        input[type="number"]:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-        }
+    input[type="number"] {
+        width: 120px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(15,23,42,0.7);
+        color: white;
+        outline: none;
+        font-size: 1rem;
+    }
 
-        button {
-            padding: 12px 24px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+    input[type="number"]:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(56,189,248,0.2);
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-        }
+    button {
+        border: none;
+        cursor: pointer;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: 0.25s;
+    }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
-        }
+    button:hover {
+        transform: translateY(-2px);
+    }
 
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
+    button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+    }
 
-        .btn-success:hover {
-            transform: translateY(-2px);
-        }
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+    }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+    .btn-success {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+    .btn-secondary {
+        background: rgba(255,255,255,0.08);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
 
-        button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
+    #inputsGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+    }
 
-        /* 折叠区域 */
-        .collapse-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+    .input-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
 
-        .btn-toggle {
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            background: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
+    .input-item label {
+        color: var(--text-sub);
+        font-size: 0.8rem;
+    }
 
-        .num-inputs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, opacity 0.3s ease;
-            opacity: 0;
-        }
+    #infoBox {
+        margin-top: 25px;
+        padding: 16px 18px;
+        border-radius: 12px;
+        background: rgba(15,23,42,0.65);
+        border-left: 4px solid var(--primary);
+        font-weight: 600;
+    }
 
-        .num-inputs-grid.expanded {
-            max-height: 1000px;
-            opacity: 1;
-        }
+    .canvas-wrap {
+        max-width: 1400px;
+        margin: 25px auto 0;
+        background: rgba(15,23,42,0.6);
+        border-radius: 18px;
+        overflow: auto;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: inset 0 0 25px rgba(0,0,0,0.4);
+    }
 
-        .num-input-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
+    canvas {
+        display: block;
+        background:
+            radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    }
 
-        .num-input-item label {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-        }
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
 
-        .num-input-item input {
-            width: 100%;
-            box-sizing: border-box;
-        }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.15);
+        border-radius: 5px;
+    }
 
-        #info-box {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 20px 0;
-            padding: 15px 20px;
-            background: rgba(30, 41, 59, 0.6);
-            border-radius: 10px;
-            border-left: 4px solid var(--primary);
-            min-height: 24px;
-        }
-
-        .canvas-container {
-            background: rgba(15, 23, 42, 0.6);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            overflow: auto;
-            max-height: 70vh;
-            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.4);
-        }
-
-        canvas {
-            display: block;
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-        }
-
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 5px;
-        }
-    </style>
+</style>
 </head>
+
 <body>
 
-    <h1>🌳 哈夫曼树分步生成器</h1>
+<h1>🌳 哈夫曼树分步生成器</h1>
 
-    <div class="control-panel">
-        <div class="step-section" id="step1">
-            <div class="section-label">Step 1: 配置规模</div>
-            <div class="input-row">
-                <label style="color: var(--text-main);">节点数量：</label>
-                <input type="number" id="countInput" min="2" max="30" placeholder="建议 2-30" style="width: 150px;">
-                <button id="btnConfirmCount" class="btn-success">生成输入框</button>
-            </div>
-        </div>
+<div class="panel">
 
-        <div class="step-section" id="step2" style="display: none;">
-            <div class="collapse-header">
-                <div class="section-label" style="margin-bottom: 0;">Step 2: 输入权重</div>
-                <button id="btnToggle" class="btn-toggle">折叠 ▲</button>
-            </div>
-            
-            <div class="num-inputs-grid expanded" id="numInputsGrid">
-                <!-- 动态输入框 -->
-            </div>
-
-            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button id="btnStart" class="btn-primary" disabled>开始构建</button>
-                <button id="btnResetCount" class="btn-secondary">重新配置</button>
-            </div>
-        </div>
-
-        <div class="step-section" id="step3" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <div class="input-row">
-                <button id="btnNext" class="btn-primary" disabled>执行下一步</button>
-                <button id="btnReset" class="btn-secondary">完全重置</button>
-            </div>
-        </div>
+    <div class="row">
+        <span class="label">节点数量：</span>
+        <input type="number" id="countInput" min="2" max="30"/>
+        <button class="btn-success" id="btnGenerate">
+            生成输入框
+        </button>
     </div>
 
-    <div id="info-box">请输入节点数量开始...</div>
+    <div id="inputsGrid"></div>
 
-    <div class="canvas-container">
-        <canvas id="treeCanvas"></canvas>
+    <div class="row" style="margin-top:25px;">
+        <button class="btn-primary" id="btnStart" disabled>
+            开始构建
+        </button>
+
+        <button class="btn-primary" id="btnNext" disabled>
+            执行下一步
+        </button>
+
+        <button class="btn-secondary" id="btnReset">
+            重置
+        </button>
     </div>
+
+    <div id="infoBox">
+        请输入节点数量开始...
+    </div>
+
+</div>
+
+<div class="canvas-wrap">
+    <canvas id="canvas"></canvas>
+</div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        class Node {
-            constructor(value, left = null, right = null) {
-                this.value = value;
-                this.left = left;
-                this.right = right;
-                // 用于布局的临时变量
-                this.x = 0;
-                this.y = 0;
-                this.width = 0; // 这棵子树的宽度
-            }
+
+class Node {
+    constructor(value, left = null, right = null) {
+        this.value = value;
+        this.left = left;
+        this.right = right;
+
+        this.x = 0;
+        this.width = 0;
+    }
+}
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const countInput = document.getElementById("countInput");
+const btnGenerate = document.getElementById("btnGenerate");
+const btnStart = document.getElementById("btnStart");
+const btnNext = document.getElementById("btnNext");
+const btnReset = document.getElementById("btnReset");
+const inputsGrid = document.getElementById("inputsGrid");
+const infoBox = document.getElementById("infoBox");
+
+let steps = [];
+let currentStep = 0;
+
+/* ======== 布局参数 ======== */
+
+const NODE_RADIUS = 26;
+
+/* 横向最小安全距离 */
+const MIN_NODE_SAFE_SPACE = 90;
+
+/* 纵向层高（决定线段长度） */
+const LEVEL_HEIGHT = 170;
+
+/* 森林树间距 */
+const FOREST_GAP = 140;
+
+/* 画布边距 */
+const PADDING = 100;
+
+/* ========================= */
+
+
+/* 生成输入框 */
+btnGenerate.onclick = () => {
+
+    const count = parseInt(countInput.value);
+
+    if (isNaN(count) || count < 2) {
+        alert("请输入至少2个节点");
+        return;
+    }
+
+    if (count > 30) {
+        alert("建议不要超过30个节点");
+        return;
+    }
+
+    inputsGrid.innerHTML = "";
+
+    for (let i = 0; i < count; i++) {
+
+        const div = document.createElement("div");
+
+        div.className = "input-item";
+
+        div.innerHTML = `
+            <label>节点 ${i + 1}</label>
+            <input type="number" class="numInput">
+        `;
+
+        inputsGrid.appendChild(div);
+    }
+
+    btnStart.disabled = false;
+
+    infoBox.textContent = "请输入所有节点权重";
+};
+
+
+/* 深拷贝 */
+function deepCopy(node) {
+
+    if (!node) return null;
+
+    return new Node(
+        node.value,
+        deepCopy(node.left),
+        deepCopy(node.right)
+    );
+}
+
+
+/* 树深度 */
+function getDepth(node) {
+
+    if (!node) return 0;
+
+    return 1 + Math.max(
+        getDepth(node.left),
+        getDepth(node.right)
+    );
+}
+
+
+/* 开始构建 */
+btnStart.onclick = () => {
+
+    const inputs = document.querySelectorAll(".numInput");
+
+    const nums = [];
+
+    for (let input of inputs) {
+
+        const val = parseInt(input.value);
+
+        if (isNaN(val)) {
+            alert("请填写全部数字");
+            return;
         }
 
-        let steps = [];
-        let currentStepIndex = 0;
-        const canvas = document.getElementById('treeCanvas');
-        const ctx = canvas.getContext('2d');
+        nums.push(val);
+    }
 
-        // 配置常量
-        const NODE_RADIUS = 25;
-        const MIN_NODE_SPACING = 20; // 节点间最小间距
-        const LEVEL_HEIGHT = 90; // 每层高度
-        const PADDING = 60;
+    steps = [];
+    currentStep = 0;
 
-        // DOM
-        const countInput = document.getElementById('countInput');
-        const btnConfirmCount = document.getElementById('btnConfirmCount');
-        const numInputsGrid = document.getElementById('numInputsGrid');
-        const btnToggle = document.getElementById('btnToggle');
-        const btnStart = document.getElementById('btnStart');
-        const btnNext = document.getElementById('btnNext');
-        const btnReset = document.getElementById('btnReset');
-        const btnResetCount = document.getElementById('btnResetCount');
-        const infoBox = document.getElementById('info-box');
-        const step1 = document.getElementById('step1');
-        const step2 = document.getElementById('step2');
-        const step3 = document.getElementById('step3');
+    let forest = nums.map(n => new Node(n));
 
-        // 折叠逻辑
-        let isExpanded = true;
-        btnToggle.onclick = () => {
-            isExpanded = !isExpanded;
-            numInputsGrid.classList.toggle('expanded', isExpanded);
-            btnToggle.textContent = isExpanded ? '折叠 ▲' : '展开 ▼';
-        };
-
-        btnConfirmCount.onclick = generateNumInputs;
-        btnStart.onclick = init;
-        btnNext.onclick = executeStep;
-        btnReset.onclick = fullReset;
-        btnResetCount.onclick = resetToStep1;
-
-        function generateNumInputs() {
-            const count = parseInt(countInput.value);
-            if (isNaN(count) || count < 2) { alert("请输入至少 2 个节点！"); return; }
-            if (count > 30) { alert("为了展示效果，建议不超过 30 个节点！"); return; }
-
-            numInputsGrid.innerHTML = '';
-            for (let i = 0; i < count; i++) {
-                const item = document.createElement('div');
-                item.className = 'num-input-item';
-                item.innerHTML = `<label>节点 ${i + 1}</label><input type="number" class="num-input" placeholder="权重">`;
-                numInputsGrid.appendChild(item);
-            }
-
-            step2.style.display = 'block';
-            btnConfirmCount.disabled = true;
-            countInput.disabled = true;
-            btnStart.disabled = false;
-            infoBox.textContent = "请输入各节点的权重值...";
-        }
-
-        function deepCopy(node) {
-            if (!node) return null;
-            return new Node(node.value, deepCopy(node.left), deepCopy(node.right));
-        }
-
-        function getTreeHeight(node) {
-            if (!node) return 0;
-            return 1 + Math.max(getTreeHeight(node.left), getTreeHeight(node.right));
-        }
-
-        function init() {
-            try {
-                const numInputs = document.querySelectorAll('.num-input');
-                const nums = [];
-                for (let input of numInputs) {
-                    const val = parseInt(input.value);
-                    if (isNaN(val)) { alert("请确保所有输入框都填写了有效数字！"); input.focus(); return; }
-                    nums.push(val);
-                }
-
-                steps = [];
-                currentStepIndex = 0;
-                let forest = nums.map(n => new Node(n));
-                
-                steps.push({ forest: forest.map(n => deepCopy(n)), msg: `初始节点列表: [${nums.join(', ')}]` });
-
-                while (forest.length > 1) {
-                    forest.sort((a, b) => a.value - b.value);
-                    const n1 = forest.shift();
-                    const n2 = forest.shift();
-                    const newNode = new Node(n1.value + n2.value, n1, n2);
-                    forest.push(newNode);
-                    steps.push({ forest: forest.map(n => deepCopy(n)), msg: `合并 ${n1.value} 和 ${n2.value} -> 生成 ${newNode.value}` });
-                }
-
-                document.querySelectorAll('.num-input').forEach(input => input.disabled = true);
-                btnStart.disabled = true;
-                btnResetCount.disabled = true;
-                btnToggle.disabled = true;
-                step3.style.display = 'block';
-                btnNext.disabled = false;
-                infoBox.textContent = "准备就绪，点击“执行下一步”开始";
-                
-                drawForest(steps[0].forest);
-            } catch (e) { console.error(e); }
-        }
-
-        function executeStep() {
-            currentStepIndex++;
-            if (currentStepIndex >= steps.length) {
-                btnNext.disabled = true;
-                infoBox.textContent = "🎉 哈夫曼树构建完成！";
-                return;
-            }
-            const state = steps[currentStepIndex];
-            infoBox.textContent = `步骤 ${currentStepIndex + 1}: ${state.msg}`;
-            drawForest(state.forest);
-        }
-
-        // --- 核心修复：重写布局算法 ---
-
-        // 第一步：计算每棵树的尺寸和相对位置
-        function calculateLayout(node, leftBoundary) {
-            if (!node) return 0;
-
-            // 如果是叶子节点
-            if (!node.left && !node.right) {
-                node.width = NODE_RADIUS * 2;
-                node.x = leftBoundary + node.width / 2;
-                return node.width;
-            }
-
-            // 递归计算子树
-            // 给子树之间留一点间距
-            const spacing = MIN_NODE_SPACING;
-            
-            let leftWidth = 0;
-            if (node.left) {
-                leftWidth = calculateLayout(node.left, leftBoundary);
-            }
-
-            let rightWidth = 0;
-            if (node.right) {
-                // 右子树的起始位置 = 左边界 + 左子树宽度 + 间距
-                rightWidth = calculateLayout(node.right, leftBoundary + leftWidth + spacing);
-            }
-
-            // 我的宽度 = 左宽 + 间距 + 右宽
-            node.width = leftWidth + (node.left && node.right ? spacing : 0) + rightWidth;
-            
-            // 我的位置 = 子树的中心
-            if (!node.left) node.x = node.right.x;
-            else if (!node.right) node.x = node.left.x;
-            else node.x = leftBoundary + node.width / 2;
-
-            return node.width;
-        }
-
-        // 第二步：绘制
-        function drawTree(node, baseY, offsetX) {
-            if (!node) return;
-
-            const actualX = node.x + offsetX;
-            const actualY = baseY;
-
-            // 绘制连线
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = '#475569';
-            ctx.lineCap = 'round';
-
-            if (node.left) {
-                drawTree(node.left, baseY + LEVEL_HEIGHT, offsetX);
-                ctx.beginPath();
-                ctx.moveTo(actualX, actualY + NODE_RADIUS);
-                ctx.lineTo(node.left.x + offsetX, baseY + LEVEL_HEIGHT - NODE_RADIUS);
-                ctx.stroke();
-            }
-            if (node.right) {
-                drawTree(node.right, baseY + LEVEL_HEIGHT, offsetX);
-                ctx.beginPath();
-                ctx.moveTo(actualX, actualY + NODE_RADIUS);
-                ctx.lineTo(node.right.x + offsetX, baseY + LEVEL_HEIGHT - NODE_RADIUS);
-                ctx.stroke();
-            }
-
-            // 绘制节点
-            // 阴影
-            ctx.beginPath();
-            ctx.arc(actualX + 3, actualY + 3, NODE_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.fill();
-
-            // 主体
-            const gradient = ctx.createRadialGradient(actualX - 5, actualY - 5, 2, actualX, actualY, NODE_RADIUS);
-            gradient.addColorStop(0, '#38bdf8');
-            gradient.addColorStop(1, '#6366f1');
-            ctx.beginPath();
-            ctx.arc(actualX, actualY, NODE_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = gradient;
-            ctx.fill();
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // 文字
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 16px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(node.value, actualX, actualY);
-        }
-
-        function drawForest(forest) {
-            if (!forest || forest.length === 0) return;
-
-            // 1. 计算总高度
-            let maxHeight = 0;
-            forest.forEach(t => maxHeight = Math.max(maxHeight, getTreeHeight(t)));
-            
-            // 2. 先为每棵树进行内部布局计算（赋予 x 坐标）
-            // 同时计算总宽度
-            let totalWidth = 0;
-            const treeGap = 80; // 树与树之间的大间隙
-
-            forest.forEach(tree => {
-                calculateLayout(tree, 0);
-                totalWidth += tree.width + treeGap;
-            });
-            totalWidth -= treeGap; // 减去最后一个多余的间隙
-            totalWidth += PADDING * 2;
-
-            // 3. 设置画布
-            canvas.width = Math.max(1200, totalWidth);
-            canvas.height = maxHeight * LEVEL_HEIGHT + PADDING * 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 4. 绘制森林
-            let currentX = PADDING;
-            forest.forEach(tree => {
-                // 为了居中这棵树，我们需要计算一个偏移
-                // 因为 calculateLayout 是从 0 开始算的，我们需要把它移到 currentX
-                drawTree(tree, PADDING, currentX);
-                currentX += tree.width + treeGap;
-            });
-        }
-
-        function resetToStep1() {
-            step2.style.display = 'none';
-            step3.style.display = 'none';
-            btnConfirmCount.disabled = false;
-            countInput.disabled = false;
-            countInput.value = '';
-            numInputsGrid.innerHTML = '';
-            btnToggle.disabled = false;
-            isExpanded = true;
-            numInputsGrid.classList.add('expanded');
-            btnToggle.textContent = '折叠 ▲';
-            infoBox.textContent = "请输入节点数量开始...";
-            canvas.width = 0;
-        }
-
-        function fullReset() {
-            resetToStep1();
-            steps = [];
-            currentStepIndex = 0;
-        }
+    steps.push({
+        forest: forest.map(t => deepCopy(t)),
+        msg: `初始节点：[${nums.join(", ")}]`
     });
+
+    while (forest.length > 1) {
+
+        forest.sort((a,b)=>a.value-b.value);
+
+        const left = forest.shift();
+        const right = forest.shift();
+
+        const parent = new Node(
+            left.value + right.value,
+            left,
+            right
+        );
+
+        forest.push(parent);
+
+        steps.push({
+            forest: forest.map(t => deepCopy(t)),
+            msg: `合并 ${left.value} 和 ${right.value} -> ${parent.value}`
+        });
+    }
+
+    btnNext.disabled = false;
+    btnStart.disabled = true;
+
+    infoBox.textContent = "点击“执行下一步”";
+
+    drawForest(steps[0].forest);
+};
+
+
+/* 下一步 */
+btnNext.onclick = () => {
+
+    currentStep++;
+
+    if (currentStep >= steps.length) {
+
+        btnNext.disabled = true;
+
+        infoBox.textContent = "🎉 哈夫曼树构建完成";
+
+        return;
+    }
+
+    const state = steps[currentStep];
+
+    infoBox.textContent =
+        `步骤 ${currentStep}: ${state.msg}`;
+
+    drawForest(state.forest);
+};
+
+
+/* 重置 */
+btnReset.onclick = () => {
+
+    steps = [];
+    currentStep = 0;
+
+    inputsGrid.innerHTML = "";
+
+    btnStart.disabled = true;
+    btnNext.disabled = true;
+
+    countInput.value = "";
+
+    canvas.width = 0;
+    canvas.height = 0;
+
+    infoBox.textContent = "请输入节点数量开始...";
+};
+
+
+
+/* =========================
+   核心布局算法（无重叠版）
+========================= */
+
+function calculateLayout(node) {
+
+    /* 叶子节点 */
+    if (!node.left && !node.right) {
+
+        node.width =
+            NODE_RADIUS * 2 +
+            MIN_NODE_SAFE_SPACE;
+
+        node.x = node.width / 2;
+
+        return node.width;
+    }
+
+    const leftWidth =
+        node.left ? calculateLayout(node.left) : 0;
+
+    const rightWidth =
+        node.right ? calculateLayout(node.right) : 0;
+
+    const gap = Math.max(
+        MIN_NODE_SAFE_SPACE,
+        NODE_RADIUS * 2 + 20
+    );
+
+    node.width =
+        leftWidth +
+        gap +
+        rightWidth;
+
+    const leftCenter = leftWidth / 2;
+
+    const rightCenter =
+        leftWidth +
+        gap +
+        rightWidth / 2;
+
+    /* 父节点位于左右孩子正中 */
+    node.x =
+        (leftCenter + rightCenter) / 2;
+
+    return node.width;
+}
+
+
+
+/* =========================
+   绘制树
+========================= */
+
+function drawTree(node, baseY, offsetX) {
+
+    if (!node) return;
+
+    const actualX = offsetX + node.x;
+    const actualY = baseY;
+
+    /* ===== 左孩子 ===== */
+
+    if (node.left) {
+
+        const leftOffsetX = offsetX;
+
+        const childX =
+            leftOffsetX + node.left.x;
+
+        const childY =
+            baseY + LEVEL_HEIGHT;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            actualX,
+            actualY + NODE_RADIUS
+        );
+
+        ctx.lineTo(
+            childX,
+            childY - NODE_RADIUS
+        );
+
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.stroke();
+
+        drawTree(
+            node.left,
+            childY,
+            leftOffsetX
+        );
+    }
+
+    /* ===== 右孩子 ===== */
+
+    if (node.right) {
+
+        const rightOffsetX =
+            offsetX +
+            (node.left ? node.left.width : 0) +
+            MIN_NODE_SAFE_SPACE;
+
+        const childX =
+            rightOffsetX + node.right.x;
+
+        const childY =
+            baseY + LEVEL_HEIGHT;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            actualX,
+            actualY + NODE_RADIUS
+        );
+
+        ctx.lineTo(
+            childX,
+            childY - NODE_RADIUS
+        );
+
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.stroke();
+
+        drawTree(
+            node.right,
+            childY,
+            rightOffsetX
+        );
+    }
+
+    /* ===== 阴影 ===== */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        actualX + 4,
+        actualY + 4,
+        NODE_RADIUS,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fill();
+
+
+    /* ===== 节点渐变 ===== */
+
+    const gradient =
+        ctx.createRadialGradient(
+            actualX - 6,
+            actualY - 6,
+            2,
+            actualX,
+            actualY,
+            NODE_RADIUS
+        );
+
+    gradient.addColorStop(0, "#38bdf8");
+    gradient.addColorStop(1, "#6366f1");
+
+    ctx.beginPath();
+
+    ctx.arc(
+        actualX,
+        actualY,
+        NODE_RADIUS,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+
+    /* ===== 数字 ===== */
+
+    ctx.fillStyle = "#fff";
+
+    ctx.font = "bold 16px Inter";
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText(
+        node.value,
+        actualX,
+        actualY
+    );
+}
+
+
+
+/* =========================
+   绘制森林
+========================= */
+
+function drawForest(forest) {
+
+    if (!forest || forest.length === 0)
+        return;
+
+    let totalWidth = 0;
+    let maxDepth = 0;
+
+    const layouts = [];
+
+    forest.forEach(tree => {
+
+        const width =
+            calculateLayout(tree);
+
+        const depth =
+            getDepth(tree);
+
+        layouts.push({
+            tree,
+            width
+        });
+
+        totalWidth += width + FOREST_GAP;
+
+        maxDepth = Math.max(maxDepth, depth);
+    });
+
+    totalWidth =
+        totalWidth -
+        FOREST_GAP +
+        PADDING * 2;
+
+    canvas.width = Math.max(1200, totalWidth);
+
+    canvas.height =
+        maxDepth * LEVEL_HEIGHT +
+        PADDING * 2;
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    let currentOffsetX = PADDING;
+
+    layouts.forEach(({tree, width}) => {
+
+        drawTree(
+            tree,
+            PADDING,
+            currentOffsetX
+        );
+
+        currentOffsetX +=
+            width +
+            FOREST_GAP;
+    });
+}
+
 </script>
 
 </body>
 </html>
+```
