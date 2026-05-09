@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>哈夫曼树分步生成器（终极防重叠版）</title>
+<title>哈夫曼树分步生成器（紧凑无重叠版）</title>
 
 <style>
 
@@ -342,22 +342,14 @@ const infoBox=document.getElementById("infoBox");
 
 
 /* =====================================
-   参数
+   核心参数（已优化为紧凑版）
 ===================================== */
 
-const NODE_RADIUS=26;
-
-/* 层高 */
-const LEVEL_HEIGHT=150;
-
-/* 节点安全间距 */
-const SAFE_GAP=90;
-
-/* 树之间距离 */
-const TREE_GAP=180;
-
-/* 边距 */
-const PADDING=120;
+const NODE_RADIUS=26;        // 节点大小不变
+const LEVEL_HEIGHT=110;      // 垂直层高（从150→110，大幅缩短垂直线段）
+const SAFE_GAP=60;           // 节点安全间距（从90→60，大幅缩短水平线段）
+const TREE_GAP=100;          // 树之间距离（从180→100，初始森林更紧凑）
+const PADDING=60;            // 画布边距（从120→60，减少空白）
 
 
 /* =====================================
@@ -584,8 +576,7 @@ btnReset.onclick=()=>{
 
 
 /* =====================================
-   核心：
-   计算子树宽度
+   核心：计算子树宽度
 ===================================== */
 
 function calculateWidth(node){
@@ -619,7 +610,7 @@ function calculateWidth(node){
 
 
 /* =====================================
-   真正无重叠布局
+   无重叠布局算法
 ===================================== */
 
 function setPosition(node,leftBound,depth){
@@ -828,7 +819,7 @@ function drawForest(forest){
 
     canvas.width=Math.max(
         totalWidth+PADDING*2,
-        1600
+        1000  // 最小画布宽度（从1600→1000）
     );
 
     canvas.height=
