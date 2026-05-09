@@ -1,172 +1,227 @@
-```html
+```html id="2m4p1r"
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>哈夫曼树分步生成器（无重叠终极版）</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>哈夫曼树分步生成器（终极防重叠版）</title>
 
 <style>
-    :root {
-        --bg-color: #0f172a;
-        --panel-bg: rgba(30, 41, 59, 0.85);
-        --primary: #38bdf8;
-        --primary-dark: #0284c7;
-        --accent: #a855f7;
-        --text-main: #f1f5f9;
-        --text-sub: #94a3b8;
-    }
 
-    * {
-        box-sizing: border-box;
-    }
+:root{
+    --bg:#0f172a;
+    --panel:#1e293bcc;
+    --primary:#38bdf8;
+    --accent:#8b5cf6;
+    --text:#f8fafc;
+    --sub:#94a3b8;
+}
 
-    body {
-        margin: 0;
-        padding: 30px 20px;
-        background: var(--bg-color);
-        color: var(--text-main);
-        font-family: "Inter", "Segoe UI", sans-serif;
-        min-height: 100vh;
-    }
+*{
+    box-sizing:border-box;
+}
 
-    h1 {
-        text-align: center;
-        font-size: 2.3rem;
-        margin-bottom: 30px;
-        background: linear-gradient(135deg, var(--primary), var(--accent));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+body{
+    margin:0;
+    padding:30px;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Inter,Segoe UI,sans-serif;
+}
 
-    .panel {
-        max-width: 1400px;
-        margin: auto;
-        background: var(--panel-bg);
-        border-radius: 18px;
-        padding: 24px;
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 10px 35px rgba(0,0,0,0.35);
-    }
+h1{
+    text-align:center;
+    margin-bottom:30px;
+    font-size:2.2rem;
 
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        var(--accent)
+    );
 
-    .label {
-        color: var(--text-sub);
-        font-size: 0.95rem;
-    }
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
 
-    input[type="number"] {
-        width: 120px;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: rgba(15,23,42,0.7);
-        color: white;
-        outline: none;
-        font-size: 1rem;
-    }
+.panel{
+    max-width:1400px;
+    margin:auto;
 
-    input[type="number"]:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(56,189,248,0.2);
-    }
+    background:var(--panel);
 
-    button {
-        border: none;
-        cursor: pointer;
-        padding: 12px 20px;
-        border-radius: 10px;
-        font-size: 0.95rem;
-        font-weight: 600;
-        transition: 0.25s;
-    }
+    padding:25px;
 
-    button:hover {
-        transform: translateY(-2px);
-    }
+    border-radius:18px;
 
-    button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        transform: none;
-    }
+    backdrop-filter:blur(12px);
 
-    .btn-primary {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white;
-    }
+    border:1px solid rgba(255,255,255,0.08);
 
-    .btn-success {
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: white;
-    }
+    box-shadow:0 10px 40px rgba(0,0,0,0.35);
+}
 
-    .btn-secondary {
-        background: rgba(255,255,255,0.08);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.1);
-    }
+.row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:12px;
+    margin-bottom:20px;
+}
 
-    #inputsGrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 12px;
-        margin-top: 20px;
-    }
+input[type="number"]{
 
-    .input-item {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
+    width:120px;
 
-    .input-item label {
-        color: var(--text-sub);
-        font-size: 0.8rem;
-    }
+    padding:12px 14px;
 
-    #infoBox {
-        margin-top: 25px;
-        padding: 16px 18px;
-        border-radius: 12px;
-        background: rgba(15,23,42,0.65);
-        border-left: 4px solid var(--primary);
-        font-weight: 600;
-    }
+    border-radius:10px;
 
-    .canvas-wrap {
-        max-width: 1400px;
-        margin: 25px auto 0;
-        background: rgba(15,23,42,0.6);
-        border-radius: 18px;
-        overflow: auto;
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: inset 0 0 25px rgba(0,0,0,0.4);
-    }
+    border:1px solid rgba(255,255,255,0.1);
 
-    canvas {
-        display: block;
-        background:
-            radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-    }
+    background:#0f172acc;
 
-    ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
-    }
+    color:white;
 
-    ::-webkit-scrollbar-thumb {
-        background: rgba(255,255,255,0.15);
-        border-radius: 5px;
-    }
+    font-size:1rem;
+
+    outline:none;
+}
+
+input[type="number"]:focus{
+
+    border-color:var(--primary);
+
+    box-shadow:0 0 0 3px rgba(56,189,248,0.2);
+}
+
+button{
+
+    border:none;
+
+    cursor:pointer;
+
+    padding:12px 20px;
+
+    border-radius:10px;
+
+    font-weight:600;
+
+    transition:0.25s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+button:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+    transform:none;
+}
+
+.primary{
+
+    background:linear-gradient(
+        135deg,
+        #38bdf8,
+        #0284c7
+    );
+
+    color:white;
+}
+
+.success{
+
+    background:linear-gradient(
+        135deg,
+        #10b981,
+        #059669
+    );
+
+    color:white;
+}
+
+.secondary{
+
+    background:rgba(255,255,255,0.08);
+
+    color:white;
+
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+#inputsGrid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fill,minmax(120px,1fr));
+
+    gap:12px;
+
+    margin-top:20px;
+}
+
+.input-item{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+}
+
+.input-item label{
+
+    color:var(--sub);
+
+    font-size:0.85rem;
+}
+
+#infoBox{
+
+    margin-top:20px;
+
+    padding:16px 18px;
+
+    border-radius:12px;
+
+    background:#0f172acc;
+
+    border-left:4px solid var(--primary);
+
+    font-weight:600;
+}
+
+.canvas-wrap{
+
+    max-width:1400px;
+
+    margin:25px auto 0;
+
+    overflow:auto;
+
+    border-radius:18px;
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    background:#0f172a;
+}
+
+canvas{
+    display:block;
+}
+
+::-webkit-scrollbar{
+    width:10px;
+    height:10px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.15);
+    border-radius:5px;
+}
 
 </style>
 </head>
@@ -178,27 +233,52 @@
 <div class="panel">
 
     <div class="row">
-        <span class="label">节点数量：</span>
-        <input type="number" id="countInput" min="2" max="30"/>
-        <button class="btn-success" id="btnGenerate">
+
+        <span>节点数量：</span>
+
+        <input
+            type="number"
+            id="countInput"
+            min="2"
+            max="30"
+        >
+
+        <button
+            class="success"
+            id="btnGenerate"
+        >
             生成输入框
         </button>
+
     </div>
 
     <div id="inputsGrid"></div>
 
     <div class="row" style="margin-top:25px;">
-        <button class="btn-primary" id="btnStart" disabled>
+
+        <button
+            class="primary"
+            id="btnStart"
+            disabled
+        >
             开始构建
         </button>
 
-        <button class="btn-primary" id="btnNext" disabled>
+        <button
+            class="primary"
+            id="btnNext"
+            disabled
+        >
             执行下一步
         </button>
 
-        <button class="btn-secondary" id="btnReset">
+        <button
+            class="secondary"
+            id="btnReset"
+        >
             重置
         </button>
+
     </div>
 
     <div id="infoBox">
@@ -211,93 +291,136 @@
     <canvas id="canvas"></canvas>
 </div>
 
+
 <script>
 
-class Node {
-    constructor(value, left = null, right = null) {
-        this.value = value;
-        this.left = left;
-        this.right = right;
+/* =====================================
+   节点类
+===================================== */
 
-        this.x = 0;
-        this.width = 0;
+class Node{
+
+    constructor(value,left=null,right=null){
+
+        this.value=value;
+
+        this.left=left;
+
+        this.right=right;
+
+        this.x=0;
+
+        this.y=0;
+
+        /* 子树宽度 */
+        this.width=0;
     }
 }
 
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
 
-const countInput = document.getElementById("countInput");
-const btnGenerate = document.getElementById("btnGenerate");
-const btnStart = document.getElementById("btnStart");
-const btnNext = document.getElementById("btnNext");
-const btnReset = document.getElementById("btnReset");
-const inputsGrid = document.getElementById("inputsGrid");
-const infoBox = document.getElementById("infoBox");
+/* =====================================
+   DOM
+===================================== */
 
-let steps = [];
-let currentStep = 0;
+const canvas=document.getElementById("canvas");
 
-/* ======== 布局参数 ======== */
+const ctx=canvas.getContext("2d");
 
-const NODE_RADIUS = 26;
+const countInput=document.getElementById("countInput");
 
-/* 横向最小安全距离 */
-const MIN_NODE_SAFE_SPACE = 90;
+const btnGenerate=document.getElementById("btnGenerate");
 
-/* 纵向层高（决定线段长度） */
-const LEVEL_HEIGHT = 170;
+const btnStart=document.getElementById("btnStart");
 
-/* 森林树间距 */
-const FOREST_GAP = 140;
+const btnNext=document.getElementById("btnNext");
 
-/* 画布边距 */
-const PADDING = 100;
+const btnReset=document.getElementById("btnReset");
 
-/* ========================= */
+const inputsGrid=document.getElementById("inputsGrid");
+
+const infoBox=document.getElementById("infoBox");
 
 
-/* 生成输入框 */
-btnGenerate.onclick = () => {
+/* =====================================
+   参数
+===================================== */
 
-    const count = parseInt(countInput.value);
+const NODE_RADIUS=26;
 
-    if (isNaN(count) || count < 2) {
+/* 层高 */
+const LEVEL_HEIGHT=150;
+
+/* 节点安全间距 */
+const SAFE_GAP=90;
+
+/* 树之间距离 */
+const TREE_GAP=180;
+
+/* 边距 */
+const PADDING=120;
+
+
+/* =====================================
+   状态
+===================================== */
+
+let steps=[];
+
+let currentStep=0;
+
+
+/* =====================================
+   输入框
+===================================== */
+
+btnGenerate.onclick=()=>{
+
+    const count=parseInt(countInput.value);
+
+    if(isNaN(count)||count<2){
+
         alert("请输入至少2个节点");
+
         return;
     }
 
-    if (count > 30) {
+    if(count>30){
+
         alert("建议不要超过30个节点");
+
         return;
     }
 
-    inputsGrid.innerHTML = "";
+    inputsGrid.innerHTML="";
 
-    for (let i = 0; i < count; i++) {
+    for(let i=0;i<count;i++){
 
-        const div = document.createElement("div");
+        const div=document.createElement("div");
 
-        div.className = "input-item";
+        div.className="input-item";
 
-        div.innerHTML = `
-            <label>节点 ${i + 1}</label>
+        div.innerHTML=`
+            <label>节点 ${i+1}</label>
             <input type="number" class="numInput">
         `;
 
         inputsGrid.appendChild(div);
     }
 
-    btnStart.disabled = false;
+    btnStart.disabled=false;
 
-    infoBox.textContent = "请输入所有节点权重";
+    infoBox.textContent=
+        "请输入所有节点权重";
 };
 
 
-/* 深拷贝 */
-function deepCopy(node) {
+/* =====================================
+   深拷贝
+===================================== */
 
-    if (!node) return null;
+function deepCopy(node){
+
+    if(!node) return null;
 
     return new Node(
         node.value,
@@ -307,56 +430,76 @@ function deepCopy(node) {
 }
 
 
-/* 树深度 */
-function getDepth(node) {
+/* =====================================
+   树深度
+===================================== */
 
-    if (!node) return 0;
+function getDepth(node){
 
-    return 1 + Math.max(
+    if(!node) return 0;
+
+    return 1+Math.max(
         getDepth(node.left),
         getDepth(node.right)
     );
 }
 
 
-/* 开始构建 */
-btnStart.onclick = () => {
+/* =====================================
+   构建步骤
+===================================== */
 
-    const inputs = document.querySelectorAll(".numInput");
+btnStart.onclick=()=>{
 
-    const nums = [];
+    const inputs=
+        document.querySelectorAll(".numInput");
 
-    for (let input of inputs) {
+    const nums=[];
 
-        const val = parseInt(input.value);
+    for(let input of inputs){
 
-        if (isNaN(val)) {
+        const val=parseInt(input.value);
+
+        if(isNaN(val)){
+
             alert("请填写全部数字");
+
             return;
         }
 
         nums.push(val);
     }
 
-    steps = [];
-    currentStep = 0;
+    steps=[];
 
-    let forest = nums.map(n => new Node(n));
+    currentStep=0;
+
+    let forest=nums.map(
+        n=>new Node(n)
+    );
 
     steps.push({
-        forest: forest.map(t => deepCopy(t)),
-        msg: `初始节点：[${nums.join(", ")}]`
+
+        forest:forest.map(
+            t=>deepCopy(t)
+        ),
+
+        msg:`初始节点：[${nums.join(", ")}]`
     });
 
-    while (forest.length > 1) {
 
-        forest.sort((a,b)=>a.value-b.value);
+    while(forest.length>1){
 
-        const left = forest.shift();
-        const right = forest.shift();
+        forest.sort(
+            (a,b)=>a.value-b.value
+        );
 
-        const parent = new Node(
-            left.value + right.value,
+        const left=forest.shift();
+
+        const right=forest.shift();
+
+        const parent=new Node(
+            left.value+right.value,
             left,
             right
         );
@@ -364,330 +507,376 @@ btnStart.onclick = () => {
         forest.push(parent);
 
         steps.push({
-            forest: forest.map(t => deepCopy(t)),
-            msg: `合并 ${left.value} 和 ${right.value} -> ${parent.value}`
+
+            forest:forest.map(
+                t=>deepCopy(t)
+            ),
+
+            msg:
+            `合并 ${left.value} 和 ${right.value} -> ${parent.value}`
         });
     }
 
-    btnNext.disabled = false;
-    btnStart.disabled = true;
+    btnStart.disabled=true;
 
-    infoBox.textContent = "点击“执行下一步”";
+    btnNext.disabled=false;
+
+    infoBox.textContent=
+        "点击“执行下一步”";
 
     drawForest(steps[0].forest);
 };
 
 
-/* 下一步 */
-btnNext.onclick = () => {
+/* =====================================
+   下一步
+===================================== */
+
+btnNext.onclick=()=>{
 
     currentStep++;
 
-    if (currentStep >= steps.length) {
+    if(currentStep>=steps.length){
 
-        btnNext.disabled = true;
+        btnNext.disabled=true;
 
-        infoBox.textContent = "🎉 哈夫曼树构建完成";
+        infoBox.textContent=
+            "🎉 哈夫曼树构建完成";
 
         return;
     }
 
-    const state = steps[currentStep];
+    const state=steps[currentStep];
 
-    infoBox.textContent =
+    infoBox.textContent=
         `步骤 ${currentStep}: ${state.msg}`;
 
     drawForest(state.forest);
 };
 
 
-/* 重置 */
-btnReset.onclick = () => {
+/* =====================================
+   重置
+===================================== */
 
-    steps = [];
-    currentStep = 0;
+btnReset.onclick=()=>{
 
-    inputsGrid.innerHTML = "";
+    steps=[];
 
-    btnStart.disabled = true;
-    btnNext.disabled = true;
+    currentStep=0;
 
-    countInput.value = "";
+    inputsGrid.innerHTML="";
 
-    canvas.width = 0;
-    canvas.height = 0;
+    canvas.width=0;
 
-    infoBox.textContent = "请输入节点数量开始...";
+    canvas.height=0;
+
+    btnStart.disabled=true;
+
+    btnNext.disabled=true;
+
+    countInput.value="";
+
+    infoBox.textContent=
+        "请输入节点数量开始...";
 };
 
 
 
-/* =========================
-   核心布局算法（无重叠版）
-========================= */
+/* =====================================
+   核心：
+   计算子树宽度
+===================================== */
 
-function calculateLayout(node) {
+function calculateWidth(node){
+
+    if(!node) return 0;
 
     /* 叶子节点 */
-    if (!node.left && !node.right) {
+    if(!node.left&&!node.right){
 
-        node.width =
-            NODE_RADIUS * 2 +
-            MIN_NODE_SAFE_SPACE;
-
-        node.x = node.width / 2;
+        node.width=
+            NODE_RADIUS*2+
+            SAFE_GAP;
 
         return node.width;
     }
 
-    const leftWidth =
-        node.left ? calculateLayout(node.left) : 0;
+    const leftWidth=
+        calculateWidth(node.left);
 
-    const rightWidth =
-        node.right ? calculateLayout(node.right) : 0;
+    const rightWidth=
+        calculateWidth(node.right);
 
-    const gap = Math.max(
-        MIN_NODE_SAFE_SPACE,
-        NODE_RADIUS * 2 + 20
-    );
-
-    node.width =
-        leftWidth +
-        gap +
-        rightWidth;
-
-    const leftCenter = leftWidth / 2;
-
-    const rightCenter =
-        leftWidth +
-        gap +
-        rightWidth / 2;
-
-    /* 父节点位于左右孩子正中 */
-    node.x =
-        (leftCenter + rightCenter) / 2;
+    node.width=
+        leftWidth+
+        rightWidth+
+        SAFE_GAP;
 
     return node.width;
 }
 
 
 
-/* =========================
-   绘制树
-========================= */
+/* =====================================
+   真正无重叠布局
+===================================== */
 
-function drawTree(node, baseY, offsetX) {
+function setPosition(node,leftBound,depth){
 
-    if (!node) return;
+    if(!node) return;
 
-    const actualX = offsetX + node.x;
-    const actualY = baseY;
+    node.y=
+        PADDING+
+        depth*LEVEL_HEIGHT;
 
-    /* ===== 左孩子 ===== */
+    /* 父节点放在子树中间 */
+    node.x=
+        leftBound+
+        node.width/2;
 
-    if (node.left) {
+    /* 左子树 */
+    if(node.left){
 
-        const leftOffsetX = offsetX;
-
-        const childX =
-            leftOffsetX + node.left.x;
-
-        const childY =
-            baseY + LEVEL_HEIGHT;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            actualX,
-            actualY + NODE_RADIUS
-        );
-
-        ctx.lineTo(
-            childX,
-            childY - NODE_RADIUS
-        );
-
-        ctx.strokeStyle = "#64748b";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.stroke();
-
-        drawTree(
+        setPosition(
             node.left,
-            childY,
-            leftOffsetX
+            leftBound,
+            depth+1
         );
     }
 
-    /* ===== 右孩子 ===== */
+    /* 右子树 */
+    if(node.right){
 
-    if (node.right) {
+        const rightStart=
+            leftBound+
+            (node.left?node.left.width:0)+
+            SAFE_GAP;
 
-        const rightOffsetX =
-            offsetX +
-            (node.left ? node.left.width : 0) +
-            MIN_NODE_SAFE_SPACE;
+        setPosition(
+            node.right,
+            rightStart,
+            depth+1
+        );
+    }
+}
 
-        const childX =
-            rightOffsetX + node.right.x;
 
-        const childY =
-            baseY + LEVEL_HEIGHT;
+
+/* =====================================
+   绘制树
+===================================== */
+
+function drawTree(node){
+
+    if(!node) return;
+
+    /* ===== 连线 ===== */
+
+    ctx.strokeStyle="#e2e8f0";
+
+    ctx.lineWidth=3;
+
+    ctx.lineCap="round";
+
+    if(node.left){
 
         ctx.beginPath();
 
         ctx.moveTo(
-            actualX,
-            actualY + NODE_RADIUS
+            node.x,
+            node.y+NODE_RADIUS
         );
 
         ctx.lineTo(
-            childX,
-            childY - NODE_RADIUS
+            node.left.x,
+            node.left.y-NODE_RADIUS
         );
 
-        ctx.strokeStyle = "#64748b";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
         ctx.stroke();
 
-        drawTree(
-            node.right,
-            childY,
-            rightOffsetX
-        );
+        drawTree(node.left);
     }
+
+    if(node.right){
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            node.x,
+            node.y+NODE_RADIUS
+        );
+
+        ctx.lineTo(
+            node.right.x,
+            node.right.y-NODE_RADIUS
+        );
+
+        ctx.stroke();
+
+        drawTree(node.right);
+    }
+
 
     /* ===== 阴影 ===== */
 
     ctx.beginPath();
 
     ctx.arc(
-        actualX + 4,
-        actualY + 4,
+        node.x+4,
+        node.y+4,
         NODE_RADIUS,
         0,
-        Math.PI * 2
+        Math.PI*2
     );
 
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fillStyle=
+        "rgba(0,0,0,0.35)";
+
     ctx.fill();
 
 
-    /* ===== 节点渐变 ===== */
+    /* ===== 渐变 ===== */
 
-    const gradient =
+    const gradient=
         ctx.createRadialGradient(
-            actualX - 6,
-            actualY - 6,
-            2,
-            actualX,
-            actualY,
+            node.x-8,
+            node.y-8,
+            5,
+            node.x,
+            node.y,
             NODE_RADIUS
         );
 
-    gradient.addColorStop(0, "#38bdf8");
-    gradient.addColorStop(1, "#6366f1");
+    gradient.addColorStop(0,"#60a5fa");
+
+    gradient.addColorStop(1,"#6366f1");
 
     ctx.beginPath();
 
     ctx.arc(
-        actualX,
-        actualY,
+        node.x,
+        node.y,
         NODE_RADIUS,
         0,
-        Math.PI * 2
+        Math.PI*2
     );
 
-    ctx.fillStyle = gradient;
+    ctx.fillStyle=gradient;
+
     ctx.fill();
 
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 3;
+
+    /* ===== 边框 ===== */
+
+    ctx.strokeStyle="#f8fafc";
+
+    ctx.lineWidth=3;
+
     ctx.stroke();
 
 
-    /* ===== 数字 ===== */
+    /* ===== 文字 ===== */
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle="white";
 
-    ctx.font = "bold 16px Inter";
+    ctx.font="bold 16px Inter";
 
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.textAlign="center";
+
+    ctx.textBaseline="middle";
 
     ctx.fillText(
         node.value,
-        actualX,
-        actualY
+        node.x,
+        node.y
     );
 }
 
 
 
-/* =========================
+/* =====================================
    绘制森林
-========================= */
+===================================== */
 
-function drawForest(forest) {
+function drawForest(forest){
 
-    if (!forest || forest.length === 0)
+    if(!forest||forest.length===0)
         return;
 
-    let totalWidth = 0;
-    let maxDepth = 0;
+    let totalWidth=0;
 
-    const layouts = [];
+    let maxDepth=0;
 
-    forest.forEach(tree => {
 
-        const width =
-            calculateLayout(tree);
+    /* 计算所有树宽度 */
 
-        const depth =
-            getDepth(tree);
+    forest.forEach(tree=>{
 
-        layouts.push({
-            tree,
-            width
-        });
+        calculateWidth(tree);
 
-        totalWidth += width + FOREST_GAP;
+        totalWidth+=
+            tree.width+
+            TREE_GAP;
 
-        maxDepth = Math.max(maxDepth, depth);
+        maxDepth=Math.max(
+            maxDepth,
+            getDepth(tree)
+        );
     });
 
-    totalWidth =
-        totalWidth -
-        FOREST_GAP +
-        PADDING * 2;
 
-    canvas.width = Math.max(1200, totalWidth);
+    canvas.width=Math.max(
+        totalWidth+PADDING*2,
+        1600
+    );
 
-    canvas.height =
-        maxDepth * LEVEL_HEIGHT +
-        PADDING * 2;
+    canvas.height=
+        maxDepth*LEVEL_HEIGHT+
+        PADDING*2;
 
-    ctx.clearRect(
+
+    /* 背景 */
+
+    const bg=
+        ctx.createLinearGradient(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+    bg.addColorStop(0,"#0f172a");
+
+    bg.addColorStop(1,"#111827");
+
+    ctx.fillStyle=bg;
+
+    ctx.fillRect(
         0,
         0,
         canvas.width,
         canvas.height
     );
 
-    let currentOffsetX = PADDING;
 
-    layouts.forEach(({tree, width}) => {
+    /* 绘制多棵树 */
 
-        drawTree(
+    let currentLeft=PADDING;
+
+    forest.forEach(tree=>{
+
+        setPosition(
             tree,
-            PADDING,
-            currentOffsetX
+            currentLeft,
+            0
         );
 
-        currentOffsetX +=
-            width +
-            FOREST_GAP;
+        drawTree(tree);
+
+        currentLeft+=
+            tree.width+
+            TREE_GAP;
     });
 }
 
